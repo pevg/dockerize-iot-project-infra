@@ -1,0 +1,75 @@
+version: "3"
+services:
+  front:
+    image: vuejs-app
+    container_name: vuejs-app-front
+    ports:
+      - 8080:80
+    networks:
+      - iot
+    restart: always
+
+  back:
+    depends_on:
+      - mongo
+    image: node-backend
+    container_name: node-back
+    ports:
+      - 3000:3000
+    networks:
+      - iot
+    restart: always
+
+  mongo:
+    image: mongo
+    container_name: mongo
+    user: "1000:1000"
+    volumes:
+      - /mnt/d/docker/volumes/mongo/data:/data/db
+    ports:
+      - 27017:27017
+    networks:
+      - iot
+    restart: always
+
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: mosquitto
+    environment:
+      - TZ=America/Argentina/Buenos_Aires   
+    volumes:
+      - /mnt/d/docker/volumes/mosquitto/config:/mosquitto/config
+      - /mnt/d/docker/volumes/mosquitto/data:/mosquitto/data
+      - /mnt/d/docker/volumes/mosquitto/log:/mosquitto/log
+    ports:
+      - 1883:1883
+    networks:
+      - iot
+    restart: always
+
+  node-RED:
+    container_name: node-RED
+    image: nodered/node-red
+    ports:
+      - 1880:1880
+    volumes:
+      - /mnt/d/docker/volumes/nodered/data:/data
+      - /mnt/d/docker/volumes/nodered/flows:/flows
+    networks:
+      - iot
+    restart: always
+
+  mqtt-explorer:
+    image: smeagolworms4/mqtt-explorer
+    container_name: mqtt-explorer
+    volumes:
+      - /mnt/d/docker/volumes/mqtt-explorer/config:/mqtt-explorer/config
+    ports:
+      - 4000:4000
+    networks:
+      - iot      
+    restart: always
+
+networks:
+  iot: 
+    driver: bridge
